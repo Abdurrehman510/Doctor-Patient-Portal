@@ -2,21 +2,20 @@ import { useContext, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { toast } from 'react-toastify';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 const Signup = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
-  const context = useContext(AuthContext);
-  const { signup, setUser } = context || {};
+  const { signup, user, setUser, loading } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    if (!setUser) {
-      console.error('setUser is undefined in AuthContext');
-      alert('Authentication error: Context not properly initialized.');
-      navigate('/signup', { replace: true });
+    if (loading) return;
+    if (user) {
+      navigate(user.role === 'Doctor' ? '/doctor' : user.role === 'Admin' ? '/admin' : '/patient', { replace: true });
       return;
     }
 
@@ -27,7 +26,7 @@ const Signup = () => {
 
     if (error) {
       console.error('Google OAuth error:', error);
-      alert(`Authentication failed: ${error}. Please try again.`);
+      toast.error(`Authentication failed: ${error}`);
       navigate('/signup', { replace: true });
       return;
     }
@@ -39,21 +38,21 @@ const Signup = () => {
         console.log('Parsed user:', parsedUser);
         localStorage.setItem('token', token);
         setUser(parsedUser);
+        toast.success('Signed up with Google!');
         navigate(parsedUser.role === 'Doctor' ? '/doctor' : parsedUser.role === 'Admin' ? '/admin' : '/patient', { replace: true });
       } catch (err) {
         console.error('Error processing Google signup:', err.message);
-        alert(`Failed to process Google signup: ${err.message}. Please try again.`);
+        toast.error(`Failed to process Google signup: ${err.message}`);
         navigate('/signup', { replace: true });
       }
     }
-  }, [location, navigate, setUser]);
+  }, [location, navigate, setUser, user, loading]);
 
   const onSubmit = async (data) => {
     try {
       await signup(data.email, data.password, data.name, data.role);
-      navigate(data.role === 'Doctor' ? '/doctor' : data.role === 'Admin' ? '/admin' : '/patient', { replace: true });
     } catch (err) {
-      alert('Signup failed: ' + err.response?.data?.message || 'Server error');
+      toast.error(err.message);
     }
   };
 
@@ -77,7 +76,10 @@ const Signup = () => {
               <label className="block text-gray-700 dark:text-gray-300 mb-2">Email</label>
               <input
                 type="email"
-                {...register('email', { required: 'Email is required', pattern: { value: /^\S+@\S+$/i, message: 'Invalid email' } })}
+                {...register('email', {
+                  required: 'Email is required',
+                  pattern: { value: /^\S+@\S+$/i, message: 'Invalid email' },
+                })}
                 className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:text-white"
               />
               {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
@@ -86,7 +88,10 @@ const Signup = () => {
               <label className="block text-gray-700 dark:text-gray-300 mb-2">Password</label>
               <input
                 type="password"
-                {...register('password', { required: 'Password is required', minLength: { value: 6, message: 'Password must be at least 6 characters' } })}
+                {...register('password', {
+                  required: 'Password is required',
+                  minLength: { value: 6, message: 'Password must be at least 6 characters' },
+                })}
                 className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:text-white"
               />
               {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
@@ -107,12 +112,16 @@ const Signup = () => {
             <button
               type="submit"
               className="w-full p-3 bg-primary text-white rounded-lg hover:bg-blue-700"
+              disabled={loading}
             >
-              Signup
+              {loading ? 'Loading...' : 'Signup'}
             </button>
           </form>
           <div className="mt-4 text-center">
-            <a href="http://localhost:5000/api/auth/google" className="inline-block p-3 bg-red-500 text-white rounded-lg hover:bg-red-600">
+            <a
+              href="http://localhost:5000/api/auth/google"
+              className="inline-block p-3 bg-red-500 text-white rounded-lg hover:bg-red-600"
+            >
               Signup with Google
             </a>
           </div>

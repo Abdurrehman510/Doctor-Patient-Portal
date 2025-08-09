@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 export const AuthContext = createContext();
 
@@ -15,14 +16,15 @@ export const AuthProvider = ({ children }) => {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then((res) => {
-          console.log('Fetched user data:', res.data); // Debug user data
+          console.log('Fetched user data:', res.data);
           setUser(res.data);
           setLoading(false);
         })
         .catch((err) => {
-          console.error('Error fetching user:', err);
+          console.error('Error fetching user:', err.response?.data?.message || err.message);
           localStorage.removeItem('token');
           setLoading(false);
+          toast.error('Session expired. Please log in again.');
         });
     } else {
       setLoading(false);
@@ -30,25 +32,31 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
-    localStorage.setItem('token', res.data.token);
-    setUser(res.data.user);
+    try {
+      const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+      localStorage.setItem('token', res.data.token);
+      setUser(res.data.user);
+      toast.success('Logged in successfully!');
+    } catch (err) {
+      throw new Error(err.response?.data?.message || 'Login failed');
+    }
   };
 
   const signup = async (email, password, name, role) => {
-    const res = await axios.post('http://localhost:5000/api/auth/signup', {
-      email,
-      password,
-      name,
-      role,
-    });
-    localStorage.setItem('token', res.data.token);
-    setUser(res.data.user);
+    try {
+      const res = await axios.post('http://localhost:5000/api/auth/signup', { email, password, name, role });
+      localStorage.setItem('token', res.data.token);
+      setUser(res.data.user);
+      toast.success('Signed up successfully!');
+    } catch (err) {
+      throw new Error(err.response?.data?.message || 'Signup failed');
+    }
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
+    toast.success('Logged out successfully!');
   };
 
   return (

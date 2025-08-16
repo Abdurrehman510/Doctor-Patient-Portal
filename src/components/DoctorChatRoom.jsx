@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import io from 'socket.io-client';
+import { socket } from '../socket';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-
-const socket = io('http://localhost:5000');
 
 const DoctorChatRoom = ({ doctorId }) => {
   const [messages, setMessages] = useState([]);
@@ -21,8 +19,10 @@ const DoctorChatRoom = ({ doctorId }) => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setPatients(res.data);
+        if (res.data.length > 0) {
+          setSelectedPatient(res.data[0]._id);
+        }
       } catch (err) {
-        console.error('Error fetching patients:', err);
         toast.error('Failed to load patients');
       }
     };
@@ -30,44 +30,56 @@ const DoctorChatRoom = ({ doctorId }) => {
   }, []);
 
   useEffect(() => {
-    if (selectedPatient) {
-      const room = { patientId: selectedPatient._id, doctorId };
-      socket.emit('joinRoom', room);
+    if (!selectedPatient || !doctorId) return;
 
-      socket.on('receiveMessage', (data) => {
-        setMessages((prev) => [...prev, data]);
-      });
+    if (!socket.connected) {
+      socket.connect();
+    }
 
-      socket.on('appointmentRequest', (request) => {
-        setAppointmentRequest(request);
-        toast.info('New appointment request received');
-      });
+    const room = { patientId: selectedPatient, doctorId };
+    socket.emit('joinRoom', room);
 
-      socket.on('error', ({ message }) => {
-        toast.error(message);
-      });
+    const onReceiveMessage = (data) => {
+      setMessages((prev) => [...prev, data]);
+    };
+    socket.on('receiveMessage', onReceiveMessage);
 
-      // Fetch chat history
-      const fetchChatHistory = async () => {
-        try {
-          const token = localStorage.getItem('token');
-          const res = await axios.get(`http://localhost:5000/api/chat/${selectedPatient._id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+    const onAppointmentRequest = (request) => {
+      setAppointmentRequest(request);
+      toast.info('New appointment request received');
+    };
+    socket.on('appointmentRequest', onAppointmentRequest);
+
+    const onError = ({ message }) => {
+      toast.error(message);
+    };
+    socket.on('error', onError);
+
+    const fetchChatHistory = async () => {
+      setMessages([]);
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get(`http://localhost:5000/api/chat/${selectedPatient}/${doctorId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.data) {
           setMessages(res.data);
-        } catch (err) {
+        }
+      } catch (err) {
+        if (err.response && err.response.status !== 404) {
           console.error('Error fetching chat history:', err);
           toast.error('Failed to load chat history');
         }
-      };
-      fetchChatHistory();
+      }
+    };
+    fetchChatHistory();
 
-      return () => {
-        socket.off('receiveMessage');
-        socket.off('appointmentRequest');
-        socket.off('error');
-      };
-    }
+    return () => {
+      socket.emit('leaveRoom', room);
+      socket.off('receiveMessage', onReceiveMessage);
+      socket.off('appointmentRequest', onAppointmentRequest);
+      socket.off('error', onError);
+    };
   }, [selectedPatient, doctorId]);
 
   useEffect(() => {
@@ -76,8 +88,9 @@ const DoctorChatRoom = ({ doctorId }) => {
 
   const sendMessage = () => {
     if (message.trim() && selectedPatient) {
-      socket.emit('sendMessage', {
-        room: { patientId: selectedPatient._id, doctorId },
+        const room = { patientId: selectedPatient, doctorId };
+        socket.emit('sendMessage', {
+        room,
         sender: 'Doctor',
         content: message,
       });
@@ -86,37 +99,42 @@ const DoctorChatRoom = ({ doctorId }) => {
   };
 
   const approveAppointment = () => {
-    socket.emit('approveAppointment', {
-      room: { patientId: selectedPatient._id, doctorId },
-      date: appointmentRequest.date,
-      notes: appointmentRequest.notes,
-    });
-    setAppointmentRequest(null);
-    toast.success('Appointment approved');
+    if (selectedPatient) {
+      socket.emit('approveAppointment', {
+        room: { patientId: selectedPatient, doctorId },
+        date: appointmentRequest.date,
+        notes: appointmentRequest.notes,
+      });
+      setAppointmentRequest(null);
+      toast.success('Appointment approved');
+    }
   };
 
   const rejectAppointment = () => {
-    socket.emit('rejectAppointment', {
-      room: { patientId: selectedPatient._id, doctorId },
-      date: appointmentRequest.date,
-      notes: appointmentRequest.notes,
-    });
-    setAppointmentRequest(null);
-    toast.error('Appointment rejected');
+    if (selectedPatient) {
+      socket.emit('rejectAppointment', {
+        room: { patientId: selectedPatient, doctorId },
+        date: appointmentRequest.date,
+        notes: appointmentRequest.notes,
+      });
+      setAppointmentRequest(null);
+      toast.error('Appointment rejected');
+    }
   };
 
   return (
     <div className="card">
       <h3 className="text-xl font-semibold mb-4 dark:text-white">Chat with Patient</h3>
       <div className="mb-4">
+        <label htmlFor="patient-select" className="block text-gray-600 dark:text-gray-300 mb-2">Select Patient</label>
         <select
+          id="patient-select"
+          value={selectedPatient || ''}
+          onChange={(e) => setSelectedPatient(e.target.value)}
           className="input"
-          onChange={(e) => setSelectedPatient(patients.find((p) => p._id === e.target.value))}
-          value={selectedPatient?._id || ''}
+          title="Select a patient to chat with"
         >
-          <option value="" disabled>
-            Select a patient
-          </option>
+          <option value="" disabled>Select a patient</option>
           {patients.map((patient) => (
             <option key={patient._id} value={patient._id}>
               {patient.name}
@@ -124,19 +142,12 @@ const DoctorChatRoom = ({ doctorId }) => {
           ))}
         </select>
       </div>
-      {selectedPatient ? (
+      {selectedPatient && (
         <>
           <div className="h-64 overflow-y-scroll mb-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
             {messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`mb-2 flex ${msg.sender === 'Doctor' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`chat-bubble ${
-                    msg.sender === 'Doctor' ? 'chat-bubble-patient' : 'chat-bubble-doctor'
-                  }`}
-                >
+              <div key={index} className={`mb-2 flex ${msg.sender === 'Doctor' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`chat-bubble ${msg.sender === 'Doctor' ? 'chat-bubble-patient' : 'chat-bubble-doctor'}`}>
                   <p>{msg.content}</p>
                   <p className="text-xs text-gray-400">{new Date(msg.timestamp).toLocaleTimeString()}</p>
                 </div>
@@ -145,7 +156,7 @@ const DoctorChatRoom = ({ doctorId }) => {
             <div ref={messagesEndRef} />
           </div>
           {appointmentRequest && (
-            <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
+            <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg animate-slide-in">
               <p className="text-gray-800 dark:text-gray-200">
                 Appointment Request: {new Date(appointmentRequest.date).toLocaleString()}
               </p>
@@ -168,14 +179,13 @@ const DoctorChatRoom = ({ doctorId }) => {
               onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
               className="input flex-1"
               placeholder="Type message..."
+              title="Chat message input"
             />
             <button onClick={sendMessage} className="btn-primary">
               Send
             </button>
           </div>
         </>
-      ) : (
-        <p className="text-gray-600 dark:text-gray-300">Select a patient to start chatting</p>
       )}
     </div>
   );

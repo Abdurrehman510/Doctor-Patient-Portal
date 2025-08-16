@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { socket } from '../socket'; // Import the shared socket instance
 
 export const AuthContext = createContext();
 
@@ -16,19 +17,24 @@ export const AuthProvider = ({ children }) => {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then((res) => {
-          console.log('Fetched user data:', res.data);
           setUser(res.data);
-          setLoading(false);
+          socket.connect(); 
         })
         .catch((err) => {
           console.error('Error fetching user:', err.response?.data?.message || err.message);
           localStorage.removeItem('token');
-          setLoading(false);
           toast.error('Session expired. Please log in again.');
+        })
+        .finally(() => {
+          setLoading(false);
         });
     } else {
       setLoading(false);
     }
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   const login = async (email, password) => {
@@ -36,6 +42,7 @@ export const AuthProvider = ({ children }) => {
       const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
       setUser(res.data.user);
+      socket.connect();
       toast.success('Logged in successfully!');
     } catch (err) {
       throw new Error(err.response?.data?.message || 'Login failed');
@@ -47,6 +54,7 @@ export const AuthProvider = ({ children }) => {
       const res = await axios.post('http://localhost:5000/api/auth/signup', { email, password, name, role });
       localStorage.setItem('token', res.data.token);
       setUser(res.data.user);
+      socket.connect();
       toast.success('Signed up successfully!');
     } catch (err) {
       throw new Error(err.response?.data?.message || 'Signup failed');
@@ -56,6 +64,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
+    socket.disconnect();
     toast.success('Logged out successfully!');
   };
 

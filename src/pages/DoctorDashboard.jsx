@@ -1,4 +1,4 @@
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -7,10 +7,17 @@ import Footer from '../components/Footer';
 import PatientList from '../components/PatientList';
 import AppointmentCalendar from '../components/AppointmentCalendar';
 import DoctorChatRoom from '../components/DoctorChatRoom';
+import TabPanel from '../components/TabPanel';
+import { 
+  UserGroupIcon, 
+  CalendarIcon, 
+  ChatBubbleLeftRightIcon 
+} from '@heroicons/react/24/outline';
 
 const DoctorDashboard = () => {
   const { user, loading } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
     if (!loading && (!user || user.role !== 'Doctor')) {
@@ -19,49 +26,54 @@ const DoctorDashboard = () => {
     }
   }, [user, loading, navigate]);
 
+  const tabs = [
+    {
+      label: 'Patients',
+      icon: <UserGroupIcon className="w-5 h-5" />,
+      content: <PatientList doctorId={user?.id} />
+    },
+    {
+      label: 'Appointments',
+      icon: <CalendarIcon className="w-5 h-5" />,
+      content: <AppointmentCalendar doctorId={user?.id} />
+    },
+    {
+      label: 'Chat',
+      icon: <ChatBubbleLeftRightIcon className="w-5 h-5" />,
+      content: <DoctorChatRoom doctorId={user?.id} />
+    }
+  ];
+
+  const handleTabChange = (index) => {
+    setActiveTab(index);
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-        <div className="spinner"></div>
+      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex">
-      {/* Sidebar */}
-      <aside className="sidebar">
-        <h2 className="text-2xl font-bold mb-8 dark:text-white sm:text-lg md:text-2xl">
-          Doctor Dashboard
-        </h2>
-        <nav className="space-y-2">
-          <button className="sidebar-item" onClick={() => navigate('/doctor')}>
-            Patients
-          </button>
-          <button className="sidebar-item" onClick={() => navigate('/doctor')}>
-            Appointments
-          </button>
-          <button className="sidebar-item" onClick={() => navigate('/doctor')}>
-            Chat
-          </button>
-        </nav>
-      </aside>
-      {/* Main Content */}
-      <div className="flex-1 ml-64 sm:ml-20 md:ml-64">
-        <Header />
-        <main className="pt-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+      <Header />
+      <main className="flex-1 p-6">
+        <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <h2 className="text-3xl dark:text-white">Welcome, Dr. {user?.name}</h2>
-            <p className="text-gray-600 dark:text-gray-300">Manage your patients and appointments efficiently.</p>
+            <h1 className="text-3xl font-bold dark:text-white">
+              Welcome, Dr. {user?.name}
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              Manage your patients and appointments efficiently.
+            </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <PatientList doctorId={user?.id} />
-            <AppointmentCalendar doctorId={user?.id} />
-            <DoctorChatRoom doctorId={user?.id} />
-          </div>
-        </main>
-        <Footer />
-      </div>
+          
+          <TabPanel tabs={tabs} />
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 };

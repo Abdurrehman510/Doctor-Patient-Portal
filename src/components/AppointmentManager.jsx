@@ -5,11 +5,12 @@ import { toast } from 'react-toastify';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import io from 'socket.io-client';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 const socket = io('http://localhost:5000');
 const localizer = momentLocalizer(moment);
 
-const AppointmentManager = ({ patientId, doctorId }) => {
+const AppointmentManager = ({ patientId }) => {
   const [appointments, setAppointments] = useState([]);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -29,8 +30,6 @@ const AppointmentManager = ({ patientId, doctorId }) => {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
-        console.log('Fetched profile:', profileRes.data);
-        console.log('Fetched appointments:', appointmentsRes.data);
         setProfile(profileRes.data);
         setAppointments(
           appointmentsRes.data.map((appt) => ({
@@ -66,24 +65,14 @@ const AppointmentManager = ({ patientId, doctorId }) => {
       toast.success('Appointment approved: ' + moment(appointment.date).format('MMMM Do YYYY, h:mm a'));
     });
 
-    socket.on('appointmentCancelled', (appointment) => {
-      setAppointments((prev) =>
-        prev.map((appt) =>
-          appt.id === appointment._id ? { ...appt, status: 'Cancelled' } : appt
-        )
-      );
-      toast.info('Appointment cancelled: ' + moment(appointment.date).format('MMMM Do YYYY, h:mm a'));
-    });
-
     return () => {
       socket.off('appointmentApproved');
-      socket.off('appointmentCancelled');
     };
   }, []);
 
   const onBookAppointment = (data) => {
     socket.emit('sendMessage', {
-      room: { patientId, doctorId },
+      room: { patientId, doctorId: profile?.doctorId?._id },
       sender: 'Patient',
       content: `Book appointment on ${data.date} with notes: ${data.notes || 'No notes'}`,
     });
@@ -93,7 +82,7 @@ const AppointmentManager = ({ patientId, doctorId }) => {
 
   const onRescheduleAppointment = (data) => {
     socket.emit('sendMessage', {
-      room: { patientId, doctorId },
+      room: { patientId, doctorId: profile?.doctorId?._id },
       sender: 'Patient',
       content: `Reschedule appointment ${editingAppointment} to ${data.date} with notes: ${data.notes || 'No notes'}`,
     });
@@ -110,11 +99,11 @@ const AppointmentManager = ({ patientId, doctorId }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success(res.data.message);
-      socket.emit('appointmentCancelled', {
-        appointmentId: id,
-        patientId,
-        doctorId,
-      });
+      setAppointments((prev) =>
+        prev.map((appt) =>
+          appt.id === id ? { ...appt, status: 'Cancelled' } : appt
+        )
+      );
     } catch (err) {
       console.error('Error cancelling appointment:', err.message);
       toast.error(err.response?.data?.message || 'Error cancelling appointment');
@@ -187,7 +176,9 @@ const AppointmentManager = ({ patientId, doctorId }) => {
             className="rbc-calendar"
             onSelectEvent={handleSelectEvent}
             eventPropGetter={(event) => ({
-              className: event.status === 'Cancelled' ? 'rbc-event cancelled' : 'rbc-event',
+              style: {
+                backgroundColor: event.status === 'Cancelled' ? '#EF4444' : '#10B981',
+              },
             })}
           />
           <div className="mt-6">

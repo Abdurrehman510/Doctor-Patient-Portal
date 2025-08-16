@@ -6,23 +6,24 @@ const PatientProfile = ({ patientId }) => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Authentication required. Please log in.');
+      const res = await axios.get('http://localhost:5000/api/patient/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log('Fetched profile:', res.data);
+      setProfile(res.data);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching profile:', err.message);
+      toast.error(err.response?.data?.message || 'Error fetching profile');
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('Authentication required. Please log in.');
-        const res = await axios.get('http://localhost:5000/api/patient/profile', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        console.log('Fetched profile:', res.data);
-        setProfile(res.data);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching profile:', err.message);
-        toast.error(err.response?.data?.message || 'Error fetching profile');
-        setLoading(false);
-      }
-    };
     fetchProfile();
   }, []);
 
@@ -83,7 +84,9 @@ const PatientProfile = ({ patientId }) => {
             {profile.reports.length ? (
               profile.reports.map((report, index) => (
                 <li key={index} className="text-gray-600 dark:text-gray-300">
-                  <a href={report} className="text-blue-500 hover:underline">Report {index + 1}</a>
+                  <a href={report} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                    Report {index + 1}
+                  </a>
                 </li>
               ))
             ) : (

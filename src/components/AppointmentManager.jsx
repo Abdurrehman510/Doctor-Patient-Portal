@@ -119,103 +119,157 @@ const AppointmentManager = ({ patientId }) => {
   };
 
   return (
-    <div className="card">
-      <h3 className="text-xl font-semibold mb-4 dark:text-white">Manage Appointments</h3>
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="spinner"></div>
-        </div>
-      ) : (
-        <div className="flex flex-col space-y-6">
-          <form
-            onSubmit={handleSubmit(editingAppointment ? onRescheduleAppointment : onBookAppointment)}
-            className="space-y-4 sm:space-y-0 sm:grid sm:grid-cols-1 md:grid-cols-2 gap-4"
-          >
-            <div>
-              <input
-                type="datetime-local"
-                {...register('date', { required: 'Date is required' })}
-                className="input"
-              />
-              {errors.date && (
-                <p className="text-red-500 text-sm mt-1">{errors.date.message}</p>
-              )}
-            </div>
-            <div>
-              <input
-                type="text"
-                placeholder="Notes (optional)"
-                {...register('notes')}
-                className="input"
-              />
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 md:col-span-2">
-              <button type="submit" className="btn-primary">
-                {editingAppointment ? 'Request Reschedule' : 'Request Appointment'}
-              </button>
-              {editingAppointment && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    reset();
-                    setEditingAppointment(null);
-                  }}
-                  className="btn-secondary"
-                >
-                  Cancel Edit
-                </button>
-              )}
-            </div>
-          </form>
-          <Calendar
-            localizer={localizer}
-            events={appointments}
-            startAccessor="start"
-            endAccessor="end"
-            style={{ height: 400 }}
-            className="rbc-calendar"
-            onSelectEvent={handleSelectEvent}
-            eventPropGetter={(event) => ({
-              style: {
-                backgroundColor: event.status === 'Cancelled' ? '#EF4444' : '#10B981',
-              },
-            })}
-          />
-          <div className="mt-6">
-            <h4 className="text-lg font-semibold dark:text-white">Upcoming Appointments</h4>
-            {appointments.filter((appt) => appt.status !== 'Cancelled').length === 0 ? (
-              <p className="text-gray-600 dark:text-gray-300">No upcoming appointments</p>
-            ) : (
-              <ul className="space-y-3">
-                {appointments
-                  .filter((appt) => appt.status !== 'Cancelled')
-                  .map((appt) => (
-                    <li
-                      key={appt.id}
-                      className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg flex flex-col sm:flex-row sm:justify-between sm:items-center transition-all duration-200"
-                    >
-                      <div>
-                        <p className="text-gray-600 dark:text-gray-300">{appt.title}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {moment(appt.start).format('MMMM Do YYYY, h:mm a')}
-                        </p>
-                        {appt.notes && (
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Notes: {appt.notes}</p>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => handleCancelAppointment(appt.id)}
-                        className="btn-danger mt-2 sm:mt-0"
-                      >
-                        Cancel
-                      </button>
-                    </li>
-                  ))}
-              </ul>
-            )}
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border border-gray-200 dark:border-gray-700">
+      <div className="p-6">
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Manage Appointments</h3>
+        
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="space-y-8">
+            <form
+              onSubmit={handleSubmit(editingAppointment ? onRescheduleAppointment : onBookAppointment)}
+              className="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-xl"
+            >
+              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                {editingAppointment ? 'Reschedule Appointment' : 'Request New Appointment'}
+              </h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Date & Time
+                  </label>
+                  <input
+                    type="datetime-local"
+                    {...register('date', { required: 'Date is required' })}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-all"
+                  />
+                  {errors.date && (
+                    <p className="mt-1 text-sm text-red-600">{errors.date.message}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Notes (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Any special requests or notes"
+                    {...register('notes')}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-all"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
+                >
+                  {editingAppointment ? (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                      </svg>
+                      Request Reschedule
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      Request Appointment
+                    </>
+                  )}
+                </button>
+                
+                {editingAppointment && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      reset();
+                      setEditingAppointment(null);
+                    }}
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </form>
+            
+            <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+              <Calendar
+                localizer={localizer}
+                events={appointments}
+                startAccessor="start"
+                endAccessor="end"
+                style={{ height: 500 }}
+                className="rbc-calendar"
+                onSelectEvent={handleSelectEvent}
+                eventPropGetter={(event) => ({
+                  style: {
+                    backgroundColor: event.status === 'Cancelled' ? '#EF4444' : '#10B981',
+                    borderColor: event.status === 'Cancelled' ? '#DC2626' : '#059669',
+                    color: 'white',
+                    borderRadius: '8px',
+                    padding: '4px 8px',
+                  },
+                })}
+              />
+            </div>
+            
+            <div>
+              <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Upcoming Appointments</h4>
+              
+              {appointments.filter((appt) => appt.status !== 'Cancelled').length === 0 ? (
+                <div className="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-xl text-center">
+                  <p className="text-gray-500 dark:text-gray-400">No upcoming appointments scheduled</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {appointments
+                    .filter((appt) => appt.status !== 'Cancelled')
+                    .sort((a, b) => new Date(a.start) - new Date(b.start))
+                    .map((appt) => (
+                      <div
+                        key={appt.id}
+                        className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h5 className="font-semibold text-gray-900 dark:text-white">{appt.title}</h5>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                              {moment(appt.start).format('MMMM Do YYYY, h:mm a')}
+                            </p>
+                            {appt.notes && (
+                              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                                <span className="font-medium">Notes:</span> {appt.notes}
+                              </p>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => handleCancelAppointment(appt.id)}
+                            className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors flex items-center gap-1"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

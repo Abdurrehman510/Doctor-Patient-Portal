@@ -64,7 +64,12 @@ const PatientDashboard = () => {
       icon: <ChatBubbleLeftRightIcon className="w-5 h-5" />,
       content: (profile && profile.doctorId)
         ? <ChatRoom room={{ patientId: user?.id, doctorId: profile.doctorId?._id }} />
-        : <p className="text-center text-gray-500">You are not assigned to a doctor yet. Please contact support.</p>
+        : <div className="text-center p-8">
+            <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
+              <ChatBubbleLeftRightIcon className="w-8 h-8 text-gray-400" />
+            </div>
+            <p className="text-gray-500 dark:text-gray-400">You are not assigned to a doctor yet. Please contact support.</p>
+          </div>
     },
     {
       label: 'Upload Report',
@@ -76,25 +81,31 @@ const PatientDashboard = () => {
   if (loading || profileLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading your dashboard...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex flex-col">
       <Header />
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold dark:text-white">
-              Welcome, {user?.name}
+          <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
+              Welcome back, <span className="text-blue-600 dark:text-blue-400">{user?.name}</span>
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
               View your health records and manage appointments.
             </p>
           </div>
-          <TabPanel tabs={tabs} />
+          
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+            <TabPanel tabs={tabs} />
+          </div>
         </div>
       </main>
       <Footer />

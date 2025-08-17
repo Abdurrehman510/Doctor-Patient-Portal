@@ -7,7 +7,6 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 const localizer = momentLocalizer(moment);
 
-// A simple Modal component for rescheduling
 const RescheduleModal = ({ event, onClose, onReschedule, onDelete }) => {
   const [newDate, setNewDate] = useState(moment(event.start).format('YYYY-MM-DDTHH:mm'));
 
@@ -30,36 +29,76 @@ const RescheduleModal = ({ event, onClose, onReschedule, onDelete }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
-        <h3 className="text-xl font-semibold mb-4 dark:text-white">Manage Appointment</h3>
-        <p className="dark:text-gray-300 mb-2">
-          <strong>Patient:</strong> {event.title.replace('Appointment with ', '')}
-        </p>
-        <p className="dark:text-gray-300 mb-4">
-          <strong>Current Time:</strong> {moment(event.start).format('MMMM Do YYYY, h:mm a')}
-        </p>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              New Appointment Time
-            </label>
-            <input
-              type="datetime-local"
-              value={newDate}
-              onChange={(e) => setNewDate(e.target.value)}
-              className="input"
-            />
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="p-6">
+          <div className="flex justify-between items-start mb-4">
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Manage Appointment</h3>
+            <button 
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
-          <div className="flex justify-between items-center mt-6">
-            <button onClick={handleReschedule} className="btn-primary">
-              Reschedule
-            </button>
-            <button onClick={handleDelete} className="btn-danger">
-              Delete Appointment
-            </button>
-            <button onClick={onClose} className="btn-secondary">
+          
+          <div className="space-y-4">
+            <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Patient</p>
+              <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                {event.title.replace('Appointment with ', '')}
+              </p>
+            </div>
+            
+            <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Current Time</p>
+              <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                {moment(event.start).format('MMMM Do YYYY, h:mm a')}
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                New Appointment Time
+              </label>
+              <input
+                type="datetime-local"
+                value={newDate}
+                onChange={(e) => setNewDate(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-all"
+              />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-gray-50 dark:bg-gray-700/30 px-6 py-4 flex justify-between border-t border-gray-200 dark:border-gray-700">
+          <button 
+            onClick={handleDelete}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Delete
+          </button>
+          
+          <div className="flex gap-3">
+            <button 
+              onClick={onClose}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
               Cancel
+            </button>
+            <button 
+              onClick={handleReschedule}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+              Reschedule
             </button>
           </div>
         </div>
@@ -139,7 +178,7 @@ const AppointmentCalendar = ({ doctorId }) => {
       });
       toast.success('Appointment scheduled successfully!');
       setFormData({ patientId: '', date: '', notes: '' });
-      fetchAppointments(); // Refetch to update the calendar
+      fetchAppointments();
     } catch (err) {
       console.error('Error scheduling appointment:', err.message);
       toast.error(err.response?.data?.message || 'Error scheduling appointment');
@@ -153,7 +192,7 @@ const AppointmentCalendar = ({ doctorId }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success('Appointment rescheduled successfully!');
-      fetchAppointments(); // Refetch to update the calendar
+      fetchAppointments();
     } catch (err) {
       console.error('Error rescheduling appointment:', err.message);
       toast.error(err.response?.data?.message || 'Failed to reschedule.');
@@ -167,7 +206,7 @@ const AppointmentCalendar = ({ doctorId }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success('Appointment deleted successfully!');
-      fetchAppointments(); // Refetch to update the calendar
+      fetchAppointments();
     } catch (err) {
       console.error('Error deleting appointment:', err.message);
       toast.error(err.response?.data?.message || 'Failed to delete appointment.');
@@ -179,7 +218,7 @@ const AppointmentCalendar = ({ doctorId }) => {
   };
 
   return (
-    <div className="card">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border border-gray-200 dark:border-gray-700">
       {selectedEvent && (
         <RescheduleModal
           event={selectedEvent}
@@ -188,61 +227,100 @@ const AppointmentCalendar = ({ doctorId }) => {
           onDelete={handleDelete}
         />
       )}
-      <h3 className="text-xl font-semibold mb-4 dark:text-white">Schedule & Manage Appointments</h3>
-      {loading ? (
-        <div className="flex justify-center"><div className="spinner"></div></div>
-      ) : (
-        <>
-          <form onSubmit={handleSchedule} className="mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <select
-                value={formData.patientId}
-                onChange={(e) => setFormData({ ...formData, patientId: e.target.value })}
-                className="input"
-                required
+      
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Schedule & Manage Appointments</h3>
+        </div>
+        
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : (
+          <>
+            <form onSubmit={handleSchedule} className="mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Patient</label>
+                  <select
+                    value={formData.patientId}
+                    onChange={(e) => setFormData({ ...formData, patientId: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-all"
+                    required
+                  >
+                    <option value="">Select Patient</option>
+                    {patients.length > 0 ? (
+                      patients.map((patient) => (
+                        <option key={patient._id} value={patient._id}>
+                          {patient.name} ({patient.email})
+                        </option>
+                      ))
+                    ) : (
+                      <option disabled>No patients available</option>
+                    )}
+                  </select>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date & Time</label>
+                  <input
+                    type="datetime-local"
+                    value={formData.date}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-all"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
+                  <input
+                    type="text"
+                    placeholder="Optional notes"
+                    value={formData.notes}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-all"
+                  />
+                </div>
+              </div>
+              
+              <button 
+                type="submit" 
+                className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
               >
-                <option value="">Select Patient</option>
-                {patients.length > 0 ? (
-                  patients.map((patient) => (
-                    <option key={patient._id} value={patient._id}>
-                      {patient.name} ({patient.email})
-                    </option>
-                  ))
-                ) : (
-                  <option disabled>No patients available</option>
-                )}
-              </select>
-              <input
-                type="datetime-local"
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="input"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Notes (optional)"
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                className="input"
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Schedule Appointment
+              </button>
+            </form>
+            
+            <div className="mb-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                <span className="inline-flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Click on an appointment to reschedule or delete it.
+                </span>
+              </p>
+            </div>
+            
+            <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+              <Calendar
+                localizer={localizer}
+                events={events}
+                startAccessor="start"
+                endAccessor="end"
+                style={{ height: 500 }}
+                className="rbc-calendar"
+                onSelectEvent={handleSelectEvent}
               />
             </div>
-            <button type="submit" className="btn-primary mt-4">
-              Schedule Appointment
-            </button>
-          </form>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Click on an existing appointment to reschedule or delete it.</p>
-          <Calendar
-            localizer={localizer}
-            events={events}
-            startAccessor="start"
-            endAccessor="end"
-            style={{ height: 500 }}
-            className="rbc-calendar"
-            onSelectEvent={handleSelectEvent}
-          />
-        </>
-      )}
+          </>
+        )}
+      </div>
     </div>
   );
 };

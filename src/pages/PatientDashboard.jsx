@@ -3,18 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import io from 'socket.io-client'; // Import socket.io-client
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import PatientProfile from '../components/PatientProfile';
 import AppointmentManager from '../components/AppointmentManager';
 import ReportUpload from '../components/ReportUpload';
-import Chat from '../components/Chat'; // Import Chat
+import Chat from '../components/Chat';
 import TabPanel from '../components/TabPanel';
 import {
   UserIcon,
   CalendarIcon,
   DocumentArrowUpIcon,
-  ChatBubbleBottomCenterTextIcon  
+  ChatBubbleBottomCenterTextIcon
 } from '@heroicons/react/24/outline';
 
 const PatientDashboard = () => {
@@ -22,6 +23,7 @@ const PatientDashboard = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     if (!loading && (!user || user.role !== 'Patient')) {
@@ -48,6 +50,28 @@ const PatientDashboard = () => {
     fetchProfile();
   }, [user, loading, navigate]);
 
+  // NEW: Socket listener for real-time notifications
+  useEffect(() => {
+    if (!user) return;
+
+    const socket = io('http://localhost:5000', {
+      query: { userId: user.id },
+    });
+
+    socket.on('receiveMessage', (message) => {
+        // Show a toast for any new message from the doctor
+        if (message.senderId !== user.id) {
+            toast.info(`New message from your doctor: "${message.message}"`, {
+                autoClose: 8000,
+            });
+            setUnreadCount(prev => prev + 1);
+        }
+    });
+
+    return () => socket.close();
+  }, [user, navigate]);
+
+
   const tabs = [
     {
       label: 'Profile',
@@ -64,12 +88,11 @@ const PatientDashboard = () => {
       icon: <DocumentArrowUpIcon className="w-5 h-5" />,
       content: <ReportUpload patientId={user?.id} />
     },
-    // Add Chat Tab
     {
       label: 'Chat with Doctor',
       icon: <ChatBubbleBottomCenterTextIcon className="w-5 h-5" />,
-      // FIX: Pass the ID from the populated doctorId object
-      content: profile?.doctorId ? <Chat recipientId={profile.doctorId._id} /> : <p>You are not assigned to a doctor yet.</p>
+      content: profile?.doctorId ? <Chat recipientId={profile.doctorId._id} recipientName={`Dr. ${profile.doctorId.name}`} onNewMessage={() => setUnreadCount(0)} /> : <p>You are not assigned to a doctor yet.</p>,
+      notification: unreadCount
     }
   ];
 
@@ -94,7 +117,7 @@ const PatientDashboard = () => {
               Welcome back, <span className="text-blue-600 dark:text-blue-400">{user?.name}</span>
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
-              View your health records and manage appointments.
+              View your health records, manage appointments, and chat with your doctor.
             </p>
           </div>
           

@@ -9,11 +9,6 @@ const Home = () => {
   const location = useLocation();
   const features = [
     {
-      title: 'Secure Chat',
-      description: 'Real-time, encrypted communication between doctors and patients with end-to-end encryption.',
-      icon: '💬',
-    },
-    {
       title: 'Appointment Scheduling',
       description: 'Intuitive calendar interface for easy booking and management of appointments.',
       icon: '📅',
@@ -48,7 +43,7 @@ const Home = () => {
               Our platform combines cutting-edge technology with intuitive design to revolutionize patient care.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {features.map((feature, index) => (
               <FeatureCard 
                 key={index} 

@@ -7,14 +7,14 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import PatientProfile from '../components/PatientProfile';
 import AppointmentManager from '../components/AppointmentManager';
-import ChatRoom from '../components/ChatRoom';
 import ReportUpload from '../components/ReportUpload';
+import Chat from '../components/Chat'; // Import Chat
 import TabPanel from '../components/TabPanel';
 import {
   UserIcon,
   CalendarIcon,
-  ChatBubbleLeftRightIcon,
-  DocumentArrowUpIcon
+  DocumentArrowUpIcon,
+  ChatBubbleBottomCenterTextIcon  
 } from '@heroicons/react/24/outline';
 
 const PatientDashboard = () => {
@@ -60,21 +60,16 @@ const PatientDashboard = () => {
       content: <AppointmentManager patientId={user?.id} />
     },
     {
-      label: 'Chat',
-      icon: <ChatBubbleLeftRightIcon className="w-5 h-5" />,
-      content: (profile && profile.doctorId)
-        ? <ChatRoom room={{ patientId: user?.id, doctorId: profile.doctorId?._id }} />
-        : <div className="text-center p-8">
-            <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
-              <ChatBubbleLeftRightIcon className="w-8 h-8 text-gray-400" />
-            </div>
-            <p className="text-gray-500 dark:text-gray-400">You are not assigned to a doctor yet. Please contact support.</p>
-          </div>
-    },
-    {
       label: 'Upload Report',
       icon: <DocumentArrowUpIcon className="w-5 h-5" />,
       content: <ReportUpload patientId={user?.id} />
+    },
+    // Add Chat Tab
+    {
+      label: 'Chat with Doctor',
+      icon: <ChatBubbleBottomCenterTextIcon className="w-5 h-5" />,
+      // FIX: Pass the ID from the populated doctorId object
+      content: profile?.doctorId ? <Chat recipientId={profile.doctorId._id} /> : <p>You are not assigned to a doctor yet.</p>
     }
   ];
 

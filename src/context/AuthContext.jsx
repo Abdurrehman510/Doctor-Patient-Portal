@@ -1,7 +1,6 @@
 import { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { socket } from '../socket';
 
 export const AuthContext = createContext();
 
@@ -19,7 +18,6 @@ export const AuthProvider = ({ children }) => {
         })
         .then((res) => {
           setUser(res.data);
-          socket.connect();
           setAuthError(null);
         })
         .catch((err) => {
@@ -36,10 +34,6 @@ export const AuthProvider = ({ children }) => {
     } else {
       setLoading(false);
     }
-
-    return () => {
-      socket.disconnect();
-    };
   }, []);
 
   const login = async (email, password) => {
@@ -48,7 +42,6 @@ export const AuthProvider = ({ children }) => {
       const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
       setUser(res.data.user);
-      socket.connect();
       setAuthError(null);
       toast.success('Logged in successfully!', {
         position: 'top-center',
@@ -91,7 +84,6 @@ export const AuthProvider = ({ children }) => {
       });
       localStorage.setItem('token', res.data.token);
       setUser(res.data.user);
-      socket.connect();
       setAuthError(null);
       toast.success('Account created successfully!', {
         position: 'top-center',
@@ -126,7 +118,6 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
-    socket.disconnect();
     toast.success('Logged out successfully!', {
       position: 'top-center',
       autoClose: 1500,

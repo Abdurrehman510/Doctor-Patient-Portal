@@ -125,8 +125,9 @@ const PatientProfile = ({ patientId }) => {
                       </svg>
                       <div>
                         <p className="font-medium">Report {index + 1}</p>
+                        {/* ### FIX: Construct the full URL for the report ### */}
                         <a 
-                          href={report} 
+                          href={`http://localhost:5000${report}`} 
                           target="_blank" 
                           rel="noopener noreferrer" 
                           className="text-sm text-blue-600 dark:text-blue-400 hover:underline"

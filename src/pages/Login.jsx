@@ -21,6 +21,7 @@ const Login = () => {
 
     const params = new URLSearchParams(location.search);
     const token = params.get('token');
+    const refreshToken = params.get('refreshToken'); // Get refresh token
     const userData = params.get('user');
     const error = params.get('error');
 
@@ -31,12 +32,13 @@ const Login = () => {
       return;
     }
 
-    if (token && userData) {
+    if (token && userData && refreshToken) { // Check for refreshToken
       try {
         const parsedUser = JSON.parse(decodeURIComponent(userData));
         localStorage.setItem('token', token);
+        localStorage.setItem('refreshToken', refreshToken); // Store refresh token
         setUser(parsedUser);
-        toast.success('Logged in with Google!');
+        toast.success('Logged in with Google!'); // or "Signed up" for Signup.jsx
         navigate(parsedUser.role === 'Doctor' ? '/doctor' : parsedUser.role === 'Admin' ? '/admin' : '/patient', { replace: true });
       } catch (err) {
         console.error('Error processing Google login:', err.message);

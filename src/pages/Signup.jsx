@@ -21,6 +21,7 @@ const Signup = () => {
 
     const params = new URLSearchParams(location.search);
     const token = params.get('token');
+    const refreshToken = params.get('refreshToken'); // Get refresh token
     const userData = params.get('user');
     const error = params.get('error');
 
@@ -31,21 +32,22 @@ const Signup = () => {
       return;
     }
 
-    if (token && userData) {
+    if (token && userData && refreshToken) { // Check for refreshToken
       try {
         const parsedUser = JSON.parse(decodeURIComponent(userData));
         localStorage.setItem('token', token);
+        localStorage.setItem('refreshToken', refreshToken); // Store refresh token
         setUser(parsedUser);
-        toast.success('Signed up with Google!');
+        toast.success('Logged in with Google!'); // or "Signed up" for Signup.jsx
         navigate(parsedUser.role === 'Doctor' ? '/doctor' : parsedUser.role === 'Admin' ? '/admin' : '/patient', { replace: true });
       } catch (err) {
-        console.error('Error processing Google signup:', err.message);
-        toast.error(`Failed to process Google signup: ${err.message}`);
-        navigate('/signup', { replace: true });
+        console.error('Error processing Google login:', err.message);
+        toast.error(`Failed to process Google login: ${err.message}`);
+        navigate('/login', { replace: true });
       }
     }
   }, [location, navigate, setUser, user, loading]);
-
+  
   const onSubmit = async (data) => {
     try {
       await signup(data.email, data.password, data.name, data.role);

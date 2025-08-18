@@ -13,6 +13,8 @@ const NotificationBell = ({ user }) => {
 
     useEffect(() => {
         if (!user) return;
+        if (user && user.id) {
+        const socket = io("http://localhost:5000", { query: { userId: user.id } });
 
         const fetchNotifications = async () => {
             try {
@@ -27,12 +29,12 @@ const NotificationBell = ({ user }) => {
         };
         fetchNotifications();
 
-        const socket = io('http://localhost:5000', { query: { userId: user.id } });
         socket.on('newNotification', (newNotification) => {
             setNotifications(prev => [newNotification, ...prev]);
         });
 
-        return () => socket.close();
+            return () => socket.close();
+        }
     }, [user]);
 
     useEffect(() => {
@@ -62,7 +64,7 @@ const NotificationBell = ({ user }) => {
             console.error("Failed to handle notification click", error);
         }
     };
-    
+
     const markAllAsRead = async () => {
         try {
             const token = localStorage.getItem('token');

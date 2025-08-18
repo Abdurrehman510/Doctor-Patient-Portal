@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import io from 'socket.io-client'; // Import socket.io-client
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import PatientProfile from '../components/PatientProfile';
@@ -23,7 +22,6 @@ const PatientDashboard = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
-  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     if (!loading && (!user || user.role !== 'Patient')) {
@@ -50,28 +48,6 @@ const PatientDashboard = () => {
     fetchProfile();
   }, [user, loading, navigate]);
 
-  // NEW: Socket listener for real-time notifications
-  useEffect(() => {
-    if (!user) return;
-
-    const socket = io('http://localhost:5000', {
-      query: { userId: user.id },
-    });
-
-    socket.on('receiveMessage', (message) => {
-        // Show a toast for any new message from the doctor
-        if (message.senderId !== user.id) {
-            toast.info(`New message from your doctor: "${message.message}"`, {
-                autoClose: 8000,
-            });
-            setUnreadCount(prev => prev + 1);
-        }
-    });
-
-    return () => socket.close();
-  }, [user, navigate]);
-
-
   const tabs = [
     {
       label: 'Profile',
@@ -91,8 +67,7 @@ const PatientDashboard = () => {
     {
       label: 'Chat with Doctor',
       icon: <ChatBubbleBottomCenterTextIcon className="w-5 h-5" />,
-      content: profile?.doctorId ? <Chat recipientId={profile.doctorId._id} recipientName={`Dr. ${profile.doctorId.name}`} onNewMessage={() => setUnreadCount(0)} /> : <p>You are not assigned to a doctor yet.</p>,
-      notification: unreadCount
+      content: profile?.doctorId ? <Chat recipientId={profile.doctorId._id} recipientName={`Dr. ${profile.doctorId.name}`} /> : <p>You are not assigned to a doctor yet.</p>,
     }
   ];
 

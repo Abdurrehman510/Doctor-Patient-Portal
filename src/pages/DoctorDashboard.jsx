@@ -21,8 +21,6 @@ const DoctorDashboard = () => {
   const navigate = useNavigate();
   const [patients, setPatients] = useState([]);
   const [activeChat, setActiveChat] = useState(null);
-  const [unreadCounts, setUnreadCounts] = useState({});
-  const [totalUnread, setTotalUnread] = useState(0);
 
   useEffect(() => {
     if (!loading && (!user || user.role !== 'Doctor')) {
@@ -48,38 +46,8 @@ const DoctorDashboard = () => {
       fetchPatients();
   }, [user]);
 
-  useEffect(() => {
-      if(!user) return;
-      const socket = io('http://localhost:5000', { query: { userId: user.id } });
-      
-      const handleReceiveMessage = (message) => {
-          if (message.senderId !== user.id && message.senderId !== activeChat?.id) {
-            setUnreadCounts(prev => ({...prev, [message.senderId]: (prev[message.senderId] || 0) + 1 }));
-            toast.info(`New message from a patient!`);
-          }
-      };
-      
-      socket.on('receiveMessage', handleReceiveMessage);
-      
-      return () => {
-          socket.off('receiveMessage', handleReceiveMessage);
-          socket.close();
-      };
-  }, [user, activeChat]);
-
-  useEffect(() => {
-      setTotalUnread(Object.values(unreadCounts).reduce((sum, count) => sum + count, 0));
-  }, [unreadCounts]);
-  
   const handleSelectChat = (patient) => {
       setActiveChat({ id: patient.userId, name: patient.name });
-      setUnreadCounts(prev => ({...prev, [patient.userId]: 0}));
-  };
-
-  const handleNewMessage = (senderId) => {
-      if (senderId !== user.id && senderId !== activeChat?.id) {
-          setUnreadCounts(prev => ({...prev, [senderId]: (prev[senderId] || 0) + 1 }));
-      }
   };
 
   const PatientChatList = () => (
@@ -92,14 +60,13 @@ const DoctorDashboard = () => {
                         <li key={p.userId}>
                             <button onClick={() => handleSelectChat(p)} className={`w-full flex justify-between items-center text-left p-3 rounded-lg transition-colors ${activeChat?.id === p.userId ? 'bg-blue-100 dark:bg-blue-900/40' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
                                 <span>{p.name}</span>
-                                {unreadCounts[p.userId] > 0 && <span className="bg-red-500 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full">{unreadCounts[p.userId]}</span>}
                             </button>
                         </li>
                     ))}
                 </ul>
             </div>
             <div className="md:col-span-2">
-                {activeChat ? <Chat recipientId={activeChat.id} recipientName={activeChat.name} onNewMessage={handleNewMessage} /> : <div className="flex items-center justify-center h-full bg-gray-50 dark:bg-gray-700/30 rounded-lg"><p className="text-gray-500">Select a patient to view messages.</p></div>}
+                {activeChat ? <Chat recipientId={activeChat.id} recipientName={activeChat.name} /> : <div className="flex items-center justify-center h-full bg-gray-50 dark:bg-gray-700/30 rounded-lg"><p className="text-gray-500">Select a patient to view messages.</p></div>}
             </div>
         </div>
     </div>
@@ -108,7 +75,7 @@ const DoctorDashboard = () => {
   const tabs = [
     { label: 'Patients', icon: <UserGroupIcon className="w-5 h-5" />, content: <PatientList doctorId={user?.id} /> },
     { label: 'Appointments', icon: <CalendarIcon className="w-5 h-5" />, content: <AppointmentCalendar doctorId={user?.id} /> },
-    { label: 'Messages', icon: <ChatBubbleBottomCenterTextIcon className="w-5 h-5" />, content: <PatientChatList />, notification: totalUnread }
+    { label: 'Messages', icon: <ChatBubbleBottomCenterTextIcon className="w-5 h-5" />, content: <PatientChatList /> }
   ];
 
   if (loading) { return <div className="flex items-center justify-center h-screen"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div></div>; }

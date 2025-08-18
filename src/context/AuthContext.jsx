@@ -4,12 +4,55 @@ import { toast } from 'react-toastify';
 
 export const AuthContext = createContext();
 
+// Setup Axios interceptor to automatically handle token refreshes
+const setupAxiosInterceptors = (logout) => {
+  axios.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+      const originalRequest = error.config;
+      if (error.response.status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true;
+        try {
+          const refreshToken = localStorage.getItem('refreshToken');
+          if (!refreshToken) {
+            logout();
+            return Promise.reject(error);
+          }
+
+          const res = await axios.post('http://localhost:5000/api/auth/refresh', { refreshToken });
+          const { accessToken } = res.data;
+          
+          localStorage.setItem('token', accessToken);
+          axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+          originalRequest.headers['Authorization'] = `Bearer ${accessToken}`;
+          
+          return axios(originalRequest);
+        } catch (refreshError) {
+          console.error("Token refresh failed", refreshError);
+          logout();
+          return Promise.reject(refreshError);
+        }
+      }
+      return Promise.reject(error);
+    }
+  );
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
+  
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    setUser(null);
+    toast.info('You have been logged out.');
+  };
 
   useEffect(() => {
+    setupAxiosInterceptors(logout);
+
     const token = localStorage.getItem('token');
     if (token) {
       axios
@@ -17,16 +60,12 @@ export const AuthProvider = ({ children }) => {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then((res) => {
-          setUser(res.data);
+          // ### FIX: Ensure the user object has a consistent 'id' property ###
+          setUser({ ...res.data, id: res.data.id || res.data._id });
           setAuthError(null);
         })
         .catch((err) => {
           console.error('Error fetching user:', err.response?.data?.message || err.message);
-          localStorage.removeItem('token');
-          setAuthError('Session expired. Please log in again.');
-          toast.error('Session expired. Please log in again.', {
-            toastId: 'session-expired',
-          });
         })
         .finally(() => {
           setLoading(false);
@@ -41,32 +80,15 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
+      localStorage.setItem('refreshToken', res.data.refreshToken);
       setUser(res.data.user);
       setAuthError(null);
-      toast.success('Logged in successfully!', {
-        position: 'top-center',
-        autoClose: 2000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: 'colored',
-      });
+      toast.success('Logged in successfully!');
       return true;
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Login failed';
       setAuthError(errorMessage);
-      toast.error(errorMessage, {
-        position: 'top-center',
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: 'colored',
-      });
+      toast.error(errorMessage);
       return false;
     } finally {
       setLoading(false);
@@ -83,51 +105,19 @@ export const AuthProvider = ({ children }) => {
         role 
       });
       localStorage.setItem('token', res.data.token);
+      localStorage.setItem('refreshToken', res.data.refreshToken);
       setUser(res.data.user);
       setAuthError(null);
-      toast.success('Account created successfully!', {
-        position: 'top-center',
-        autoClose: 2000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: 'colored',
-      });
+      toast.success('Account created successfully!');
       return true;
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Signup failed';
       setAuthError(errorMessage);
-      toast.error(errorMessage, {
-        position: 'top-center',
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: 'colored',
-      });
+      toast.error(errorMessage);
       return false;
     } finally {
       setLoading(false);
     }
-  };
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-    toast.success('Logged out successfully!', {
-      position: 'top-center',
-      autoClose: 1500,
-      hideProgressBar: true,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: 'colored',
-    });
   };
 
   return (

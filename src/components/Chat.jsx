@@ -39,9 +39,11 @@ const Chat = ({ recipientId, recipientName }) => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    const newSocket = io('http://localhost:5000', { query: { userId: user.id } });
-    setSocket(newSocket);
+    if (user && user.id) {
+        const newSocket = io("http://localhost:5000", { query: { userId: user.id } });
+        setSocket(newSocket);
     return () => newSocket.close();
+    }
   }, [user.id]);
 
   useEffect(() => {

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ThemeContext } from '../context/ThemeContext';
 import { AuthContext } from '../context/AuthContext';
 import ThemeToggle from './ThemeToggle';
-import NotificationBell from './NotificationBell';
+import NotificationBell from './NotificationBell'; // Import NotificationBell
 
 const Header = () => {
   const { theme } = useContext(ThemeContext);
@@ -24,8 +24,7 @@ const Header = () => {
         <div className="flex items-center gap-2 sm:gap-4">
           {user ? (
             <>
-              {/* --- ADD NOTIFICATION BELL HERE --- */}
-              <NotificationBell user={user} />
+              <NotificationBell user={user} /> {/* Add NotificationBell */}
               <div className="hidden md:flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
                   {user.name.charAt(0)}

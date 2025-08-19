@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import io from 'socket.io-client';
-import { BellIcon } from '@heroicons/react/24/outline';
+import { BellIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import moment from 'moment';
 
 const NotificationBell = ({ user }) => {
@@ -65,6 +65,19 @@ const NotificationBell = ({ user }) => {
         }
     };
 
+    const handleDeleteNotification = async (notifId, e) => {
+        e.stopPropagation(); // Prevent the click from propagating to the notification body
+        try {
+            const token = localStorage.getItem('token');
+            await axios.delete(`http://localhost:5000/api/notifications/${notifId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setNotifications(notifications.filter(n => n._id !== notifId));
+        } catch (error) {
+            console.error("Failed to delete notification", error);
+        }
+    };
+
     const markAllAsRead = async () => {
         try {
             const token = localStorage.getItem('token');
@@ -104,11 +117,14 @@ const NotificationBell = ({ user }) => {
                                     <div className="w-10 h-10 flex-shrink-0 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
                                         <BellIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                                     </div>
-                                    <div>
+                                    <div className="flex-grow">
                                         <p className="text-sm font-semibold text-gray-800 dark:text-white">{notif.title}</p>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">{notif.message}</p>
                                         <p className="text-xs text-gray-400 mt-1">{moment(notif.createdAt).fromNow()}</p>
                                     </div>
+                                    <button onClick={(e) => handleDeleteNotification(notif._id, e)} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600">
+                                        <XMarkIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                                    </button>
                                 </div>
                             ))
                         )}

@@ -34,7 +34,7 @@ const RescheduleModal = ({ event, onClose, onReschedule, onDelete }) => {
         <div className="p-6">
           <div className="flex justify-between items-start mb-4">
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Manage Appointment</h3>
-            <button 
+            <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition-colors"
             >
@@ -43,7 +43,7 @@ const RescheduleModal = ({ event, onClose, onReschedule, onDelete }) => {
               </svg>
             </button>
           </div>
-          
+
           <div className="space-y-4">
             <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Patient</p>
@@ -51,14 +51,14 @@ const RescheduleModal = ({ event, onClose, onReschedule, onDelete }) => {
                 {event.title.replace('Appointment with ', '')}
               </p>
             </div>
-            
+
             <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Current Time</p>
               <p className="text-lg font-semibold text-gray-900 dark:text-white">
                 {moment(event.start).format('MMMM Do YYYY, h:mm a')}
               </p>
             </div>
-            
+
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 New Appointment Time
@@ -72,9 +72,9 @@ const RescheduleModal = ({ event, onClose, onReschedule, onDelete }) => {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-gray-50 dark:bg-gray-700/30 px-6 py-4 flex justify-between border-t border-gray-200 dark:border-gray-700">
-          <button 
+          <button
             onClick={handleDelete}
             className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center gap-2"
           >
@@ -83,15 +83,15 @@ const RescheduleModal = ({ event, onClose, onReschedule, onDelete }) => {
             </svg>
             Delete
           </button>
-          
+
           <div className="flex gap-3">
-            <button 
+            <button
               onClick={onClose}
               className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             >
               Cancel
             </button>
-            <button 
+            <button
               onClick={handleReschedule}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
             >
@@ -180,8 +180,12 @@ const AppointmentCalendar = ({ doctorId }) => {
       setFormData({ patientId: '', date: '', notes: '' });
       fetchAppointments();
     } catch (err) {
-      console.error('Error scheduling appointment:', err.message);
-      toast.error(err.response?.data?.message || 'Error scheduling appointment');
+      if (err.response && err.response.status === 409) {
+        toast.error('This time slot is already booked.');
+      } else {
+        console.error('Error scheduling appointment:', err.message);
+        toast.error(err.response?.data?.message || 'Error scheduling appointment');
+      }
     }
   };
 
@@ -194,8 +198,12 @@ const AppointmentCalendar = ({ doctorId }) => {
       toast.success('Appointment rescheduled successfully!');
       fetchAppointments();
     } catch (err) {
-      console.error('Error rescheduling appointment:', err.message);
-      toast.error(err.response?.data?.message || 'Failed to reschedule.');
+      if (err.response && err.response.status === 409) {
+        toast.error('This time slot is already booked.');
+      } else {
+        console.error('Error rescheduling appointment:', err.message);
+        toast.error(err.response?.data?.message || 'Failed to reschedule.');
+      }
     }
   };
 
@@ -227,12 +235,12 @@ const AppointmentCalendar = ({ doctorId }) => {
           onDelete={handleDelete}
         />
       )}
-      
+
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Schedule & Manage Appointments</h3>
         </div>
-        
+
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -261,7 +269,7 @@ const AppointmentCalendar = ({ doctorId }) => {
                     )}
                   </select>
                 </div>
-                
+
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date & Time</label>
                   <input
@@ -272,7 +280,7 @@ const AppointmentCalendar = ({ doctorId }) => {
                     required
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
                   <input
@@ -284,9 +292,9 @@ const AppointmentCalendar = ({ doctorId }) => {
                   />
                 </div>
               </div>
-              
-              <button 
-                type="submit" 
+
+              <button
+                type="submit"
                 className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -295,7 +303,7 @@ const AppointmentCalendar = ({ doctorId }) => {
                 Schedule Appointment
               </button>
             </form>
-            
+
             <div className="mb-4">
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 <span className="inline-flex items-center gap-1">
@@ -306,7 +314,7 @@ const AppointmentCalendar = ({ doctorId }) => {
                 </span>
               </p>
             </div>
-            
+
             <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
               <Calendar
                 localizer={localizer}

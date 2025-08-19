@@ -10,7 +10,10 @@ const setupAxiosInterceptors = (logout) => {
     (response) => response,
     async (error) => {
       const originalRequest = error.config;
-      if (error.response.status === 401 && !originalRequest._retry) {
+      
+      // ### FIX: Check if error.response exists before accessing status ###
+      // This handles network errors (like ERR_CONNECTION_REFUSED) gracefully.
+      if (error.response && error.response.status === 401 && !originalRequest._retry) {
         originalRequest._retry = true;
         try {
           const refreshToken = localStorage.getItem('refreshToken');
@@ -37,6 +40,7 @@ const setupAxiosInterceptors = (logout) => {
     }
   );
 };
+
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);

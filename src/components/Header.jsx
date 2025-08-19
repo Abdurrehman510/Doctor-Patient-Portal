@@ -1,16 +1,22 @@
 import { useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ThemeContext } from '../context/ThemeContext';
 import { AuthContext } from '../context/AuthContext';
 import ThemeToggle from './ThemeToggle';
-import NotificationBell from './NotificationBell'; // Import NotificationBell
+import NotificationBell from './NotificationBell';
 
 const Header = () => {
   const { theme } = useContext(ThemeContext);
   const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
-    <header className={`sticky top-0 z-50 shadow-sm backdrop-blur-md transition-colors duration-300 ${theme === 'dark' ? 'bg-gray-900/95 text-gray-100 border-b border-gray-700' : 'bg-white/95 text-gray-900 border-b border-gray-200'}`}>
+    <header className={`sticky top-0 z-50 shadow-sm backdrop-blur-md transition-colors duration-300 ${theme === 'dark' ? 'bg-gray-900/80 text-gray-100 border-b border-gray-700' : 'bg-white/80 text-gray-900 border-b border-gray-200'}`}>
       <nav className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
         <Link to="/" className="flex items-center gap-2">
           <svg className="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -24,7 +30,7 @@ const Header = () => {
         <div className="flex items-center gap-2 sm:gap-4">
           {user ? (
             <>
-              <NotificationBell user={user} /> {/* Add NotificationBell */}
+              <NotificationBell user={user} />
               <div className="hidden md:flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
                   {user.name.charAt(0)}
@@ -32,7 +38,7 @@ const Header = () => {
                 <span className="text-sm font-medium">Hi, {user.name.split(' ')[0]}</span>
               </div>
               <button
-                onClick={logout}
+                onClick={handleLogout}
                 className="px-4 py-2 text-sm font-medium rounded-lg border border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
               >
                 Sign out

@@ -9,7 +9,6 @@ const moment = require('moment');
 const Diagnosis = require('../models/Diagnosis');
 const Prescription = require('../models/Prescription');
 
-
 // Middleware to protect routes
 const auth = passport.authenticate('jwt', { session: false });
 
@@ -45,6 +44,50 @@ router.get('/patients/:id', auth, async (req, res) => {
   }
 });
 
+// ## UPDATE patient details (by doctor)
+router.put('/patients/:id', auth, async (req, res) => {
+  try {
+    const patient = await Patient.findById(req.params.id);
+
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found.' });
+    }
+
+    // Security Check: Ensure the doctor is assigned to this patient
+    if (!patient.doctorId || patient.doctorId.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Access denied: You are not assigned to this patient.' });
+    }
+
+    // Whitelist fields that a doctor can update
+    const { name, dob, gender, phone, bloodType, allergies, chronicConditions, lastCheckup } = req.body;
+
+    // Update patient document
+    if (name) patient.name = name;
+    if (dob) patient.dob = dob;
+    if (gender) patient.gender = gender;
+    if (phone) patient.phone = phone;
+    if (bloodType) patient.bloodType = bloodType;
+    if (allergies) patient.allergies = allergies;
+    if (chronicConditions) patient.chronicConditions = chronicConditions;
+    if (lastCheckup) patient.lastCheckup = lastCheckup;
+
+    // If the name is changed, update the corresponding User model as well
+    if (name) {
+      const user = await User.findById(patient.userId);
+      if (user && user.name !== name) {
+        user.name = name;
+        await user.save();
+      }
+    }
+
+    const updatedPatient = await patient.save();
+    res.json(updatedPatient);
+
+  } catch (err) {
+    console.error('Error updating patient details by doctor:', err.message);
+    res.status(500).json({ message: 'Server error while updating patient details.' });
+  }
+});
 
 // ## POST (add) a new patient for the logged-in doctor
 router.post('/patients', auth, async (req, res) => {

@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { FiArrowLeft, FiFileText, FiPieChart, FiFile, FiCalendar, FiUser, FiMail, FiPhone } from 'react-icons/fi';
+import { FiArrowLeft, FiFileText, FiPieChart, FiFile, FiCalendar, FiUser, FiMail, FiPhone, FiEdit } from 'react-icons/fi';
 import DiagnosisPrescription from './DiagnosisPrescription';
+import EditPatientProfile from './EditPatientProfile'; // Import the new component
 
 // UI Components
 const Card = ({ children, className = '', ...props }) => (
@@ -68,6 +69,7 @@ const PatientDetails = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [isEditModalOpen, setEditModalOpen] = useState(false); // State for modal
 
   const fetchData = async () => {
     setLoading(true);
@@ -106,6 +108,10 @@ const PatientDetails = () => {
     fetchData();
   }, [id]);
 
+  const handleProfileUpdate = (updatedProfile) => {
+    setPatient(updatedProfile); // Update state with new data
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
@@ -129,6 +135,15 @@ const PatientDetails = () => {
   }
 
   return (
+    <>
+    {isEditModalOpen && (
+        <EditPatientProfile
+          profile={patient}
+          onClose={() => setEditModalOpen(false)}
+          onProfileUpdate={handleProfileUpdate}
+          userRole="Doctor"
+        />
+      )}
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Patient Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
@@ -158,7 +173,12 @@ const PatientDetails = () => {
             </div>
           </div>
         </div>
-        
+        <button 
+            onClick={() => setEditModalOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 border border-blue-500 bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:border-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+          >
+            <FiEdit /> Edit Patient Details
+          </button>        
         <Link 
           to="/doctor" 
           className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
@@ -512,6 +532,7 @@ const PatientDetails = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

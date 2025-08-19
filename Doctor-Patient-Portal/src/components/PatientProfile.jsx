@@ -3,13 +3,15 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { 
   FiUser, FiMail, FiCalendar, FiFileText, FiPieChart, 
-  FiFile, FiDownload, FiPlus, FiActivity, FiAlertCircle 
+  FiFile, FiDownload, FiPlus, FiActivity, FiAlertCircle, FiEdit 
 } from 'react-icons/fi';
+import EditPatientProfile from './EditPatientProfile'; // Import the new component
 
 const PatientProfile = ({ patientId }) => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('diagnosis');
+  const [isEditModalOpen, setEditModalOpen] = useState(false); // State for modal
 
   const fetchProfile = async () => {
     try {
@@ -31,6 +33,10 @@ const PatientProfile = ({ patientId }) => {
     fetchProfile();
   }, []);
 
+  const handleProfileUpdate = (updatedProfile) => {
+    setProfile(updatedProfile); // Update state with new data from modal
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
@@ -41,6 +47,7 @@ const PatientProfile = ({ patientId }) => {
 
   if (!profile) {
     return (
+      
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-8 text-center max-w-md mx-auto">
         <div className="flex flex-col items-center">
           <FiAlertCircle className="text-red-500 text-4xl mb-4" />
@@ -60,6 +67,15 @@ const PatientProfile = ({ patientId }) => {
   }
 
   return (
+    <>
+    {isEditModalOpen && (
+        <EditPatientProfile
+          profile={profile}
+          onClose={() => setEditModalOpen(false)}
+          onProfileUpdate={handleProfileUpdate}
+          userRole="Patient"
+        />
+      )}
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Patient Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
@@ -98,6 +114,13 @@ const PatientProfile = ({ patientId }) => {
         </div>
         
         <div className="flex gap-3">
+          <button 
+              onClick={() => setEditModalOpen(true)}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors flex items-center gap-2"
+            >
+              <FiEdit size={16} />
+              Edit Profile
+            </button>
           <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors flex items-center gap-2">
             <FiPlus size={16} />
             New Appointment
@@ -424,6 +447,7 @@ const PatientProfile = ({ patientId }) => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

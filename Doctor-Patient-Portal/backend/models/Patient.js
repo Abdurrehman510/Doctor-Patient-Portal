@@ -1,3 +1,5 @@
+// File: backend/models/Patient.js
+
 const mongoose = require('mongoose');
 
 const patientSchema = new mongoose.Schema({
@@ -16,7 +18,7 @@ const patientSchema = new mongoose.Schema({
     required: false // A patient might not have an assigned doctor initially
   },
 
-  // Basic patient information (can be synced from the User model)
+  // Basic patient information
   name: { 
     type: String, 
     required: true 
@@ -27,6 +29,15 @@ const patientSchema = new mongoose.Schema({
     unique: true 
   },
   
+  // New Personal & Medical Details
+  dob: { type: Date },
+  gender: { type: String, enum: ['Male', 'Female', 'Other'] },
+  phone: { type: String },
+  bloodType: { type: String },
+  allergies: [{ type: String }],
+  chronicConditions: [{ type: String }],
+  lastCheckup: { type: Date }, // A field typically updated by a doctor
+
   // References to detailed diagnosis records
   diagnosis: [{ 
     type: mongoose.Schema.Types.ObjectId, 

@@ -1,6 +1,9 @@
+// File: backend/routes/patient.js
+
 const express = require('express');
 const router = express.Router();
 const Patient = require('../models/Patient');
+const User = require('../models/User'); // Import User model
 const Appointment = require('../models/Appointment');
 const authMiddleware = require('../middleware/authMiddleware');
 const multer = require('multer');
@@ -54,6 +57,40 @@ router.get('/profile', auth, async (req, res) => {
   } catch (err) {
     console.error('Error in /profile route:', err.message);
     res.status(500).json({ message: 'Server error while retrieving profile' });
+  }
+});
+
+// ## UPDATE patient profile (by patient)
+router.put('/profile', auth, async (req, res) => {
+  try {
+    const patient = await Patient.findOne({ userId: req.user.id });
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient profile not found.' });
+    }
+
+    // Whitelist fields that a patient can update
+    const { name, dob, gender, phone, bloodType, allergies, chronicConditions } = req.body;
+
+    // Update patient document
+    if (name) patient.name = name;
+    if (dob) patient.dob = dob;
+    if (gender) patient.gender = gender;
+    if (phone) patient.phone = phone;
+    if (bloodType) patient.bloodType = bloodType;
+    if (allergies) patient.allergies = allergies;
+    if (chronicConditions) patient.chronicConditions = chronicConditions;
+
+    // If the name is changed, also update it in the core User model for consistency
+    if (name && name !== req.user.name) {
+      await User.findByIdAndUpdate(req.user.id, { name });
+    }
+
+    const updatedPatient = await patient.save();
+    res.json(updatedPatient);
+
+  } catch (err) {
+    console.error('Error updating patient profile:', err.message);
+    res.status(500).json({ message: 'Server error while updating profile' });
   }
 });
 

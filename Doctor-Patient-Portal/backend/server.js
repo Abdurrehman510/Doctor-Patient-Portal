@@ -15,6 +15,7 @@ const doctorRoutes = require('./routes/doctor');
 const patientRoutes = require('./routes/patient');
 const chatRoutes = require('./routes/chat');
 const notificationRoutes = require('./routes/notifications');
+const analysisRoutes = require('./routes/analysis');
 
 // Models
 const Message = require('./models/Message');
@@ -55,6 +56,7 @@ app.use('/api/patient', patientRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.get('/api/health', (req, res) => res.json({ status: 'Server running' }));
+app.use('/api/analysis', analysisRoutes);
 
 io.on('connection', (socket) => {
   const userId = socket.handshake.query.userId;

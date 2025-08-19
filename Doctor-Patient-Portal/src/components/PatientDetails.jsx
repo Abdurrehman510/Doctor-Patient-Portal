@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { FiArrowLeft, FiFileText, FiPieChart, FiFile, FiCalendar, FiUser, FiMail, FiPhone, FiEdit } from 'react-icons/fi';
+import { FiArrowLeft, FiFileText, FiPieChart, FiFile, FiCalendar, FiUser,FiCpu, FiMail, FiPhone, FiEdit } from 'react-icons/fi';
 import DiagnosisPrescription from './DiagnosisPrescription';
 import EditPatientProfile from './EditPatientProfile'; // Import the new component
+import HealthSummary from './HealthSummary';
 
 // UI Components
 const Card = ({ children, className = '', ...props }) => (
@@ -277,6 +278,9 @@ const PatientDetails = () => {
             >
               Prescriptions
             </Tab>
+            <Tab active={activeTab === 'summary'} onClick={() => setActiveTab('summary')} icon={<FiCpu />}>
+              Health Summary
+            </Tab>
           </Tabs>
 
           {/* Tab Content */}
@@ -527,6 +531,10 @@ const PatientDetails = () => {
                   </div>
                 </div>
               </Card>
+            )}
+
+            {activeTab === 'summary' && (
+              <HealthSummary patientId={id} />
             )}
           </div>
         </div>

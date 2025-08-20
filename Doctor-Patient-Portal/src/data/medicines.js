@@ -140,5 +140,146 @@ export const medicineNames = [
   "Tacrolimus",
   "Cyclosporine",
   "Hydroxychloroquine",
-  "Methotrexate"
+  "Methotrexate",
+
+  // --- Newly Added (100+ Medicines) ---
+  // Pain & Fever
+  "Ketorolac",
+  "Indomethacin",
+  "Naproxen",
+  "Mefenamic Acid",
+  "Chlorzoxazone",
+  "Thiocolchicoside",
+  "Pregabalin + Methylcobalamin",
+
+  // Antibiotics (Extended)
+  "Linezolid",
+  "Vancomycin",
+  "Meropenem",
+  "Imipenem",
+  "Ceftriaxone",
+  "Cefuroxime",
+  "Cefepime",
+  "Clarithromycin",
+  "Roxithromycin",
+  "Nitrofurantoin",
+  "Clindamycin",
+  "Tetracycline",
+
+  // Gastroenterology
+  "Itopride",
+  "Mosapride",
+  "Rifaximin",
+  "Mesalamine",
+  "Azathioprine",
+  "Prednisolone",
+  "Bismuth Subsalicylate",
+
+  // Respiratory
+  "Formoterol",
+  "Salmeterol",
+  "Ipratropium",
+  "Tiotropium",
+  "Theophylline",
+  "Montelukast + Levocetirizine",
+  "Levosalbutamol",
+  "Dextromethorphan",
+
+  // Endocrine & Diabetes
+  "Pioglitazone",
+  "Repaglinide",
+  "Insulin Regular",
+  "Insulin Lispro",
+  "Insulin Detemir",
+  "Canagliflozin",
+  "Glipizide",
+  "Linagliptin",
+
+  // Cardiac (Extended)
+  "Diltiazem",
+  "Verapamil",
+  "Nifedipine",
+  "Isosorbide Mononitrate",
+  "Isosorbide Dinitrate",
+  "Digoxin",
+  "Amiodarone",
+  "Sotalol",
+  "Furosemide",
+  "Spironolactone",
+  "Torsemide",
+  "Eplerenone",
+  "Warfarin",
+  "Heparin",
+  "Streptokinase",
+  "Tenecteplase",
+
+  // Lipid & Metabolism
+  "Ezetimibe",
+  "Gemfibrozil",
+  "Niacin",
+
+  // Neuro/Psychiatry (Extended)
+  "Venlafaxine",
+  "Duloxetine",
+  "Bupropion",
+  "Mirtazapine",
+  "Lithium Carbonate",
+  "Haloperidol",
+  "Clozapine",
+  "Paliperidone",
+  "Lamotrigine",
+  "Topiramate",
+
+  // Dermatology
+  "Isotretinoin",
+  "Adapalene",
+  "Clobetasol",
+  "Betamethasone",
+  "Mometasone",
+  "Hydrocortisone",
+  "Ketoconazole",
+  "Clotrimazole",
+  "Terbinafine",
+  "Itraconazole",
+
+  // Gynecology
+  "Medroxyprogesterone",
+  "Progesterone",
+  "Estradiol",
+  "Clomiphene",
+  "Letrozole",
+  "Tranexamic Acid",
+  "Misoprostol",
+  "Mifepristone",
+
+  // Pediatrics & Common Use
+  "Zinc Acetate",
+  "ORS (Oral Rehydration Salts)",
+  "Albendazole",
+  "Mebendazole",
+  "Ivermectin",
+  "Chlorhexidine",
+  "Paracetamol + Ibuprofen",
+  "Cough Syrup (Ambroxol + Guaifenesin + Terbutaline)",
+  "Iron Sucrose",
+  "Cefadroxil",
+
+  // Immunology / Autoimmune
+  "Etanercept",
+  "Adalimumab",
+  "Tofacitinib",
+
+  // Ophthalmology
+  "Timolol",
+  "Dorzolamide",
+  "Brimonidine",
+  "Latanoprost",
+
+  // Miscellaneous
+  "Allopurinol",
+  "Colchicine",
+  "Sodium Bicarbonate",
+  "Potassium Citrate",
+  "Magnesium Hydroxide",
+  "Activated Charcoal"
 ];

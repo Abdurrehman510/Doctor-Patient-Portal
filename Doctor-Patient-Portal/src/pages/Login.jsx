@@ -1,6 +1,8 @@
+// File: src/pages/Login.jsx
+
 import { useContext, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom'; // Import Link
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import Header from '../components/Header';
@@ -21,7 +23,7 @@ const Login = () => {
 
     const params = new URLSearchParams(location.search);
     const token = params.get('token');
-    const refreshToken = params.get('refreshToken'); // Get refresh token
+    const refreshToken = params.get('refreshToken');
     const userData = params.get('user');
     const error = params.get('error');
 
@@ -32,13 +34,13 @@ const Login = () => {
       return;
     }
 
-    if (token && userData && refreshToken) { // Check for refreshToken
+    if (token && userData && refreshToken) {
       try {
         const parsedUser = JSON.parse(decodeURIComponent(userData));
         localStorage.setItem('token', token);
-        localStorage.setItem('refreshToken', refreshToken); // Store refresh token
+        localStorage.setItem('refreshToken', refreshToken);
         setUser(parsedUser);
-        toast.success('Logged in with Google!'); // or "Signed up" for Signup.jsx
+        toast.success('Logged in with Google!');
         navigate(parsedUser.role === 'Doctor' ? '/doctor' : parsedUser.role === 'Admin' ? '/admin' : '/patient', { replace: true });
       } catch (err) {
         console.error('Error processing Google login:', err.message);
@@ -92,9 +94,10 @@ const Login = () => {
                 <div className="space-y-1">
                   <div className="flex justify-between items-center">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
-                    <a href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
+                    {/* UPDATED THIS LINE */}
+                    <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
                       Forgot password?
-                    </a>
+                    </Link>
                   </div>
                   <input
                     type="password"
@@ -154,12 +157,12 @@ const Login = () => {
               
               <div className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
                 Don't have an account?{' '}
-                <a 
-                  href="/signup" 
+                <Link 
+                  to="/signup" 
                   className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
                 >
                   Create account
-                </a>
+                </Link>
               </div>
             </div>
           </div>

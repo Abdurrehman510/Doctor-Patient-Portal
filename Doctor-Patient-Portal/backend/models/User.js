@@ -8,6 +8,9 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   googleId: { type: String },
   createdAt: { type: Date, default: Date.now },
+  // Add these two fields for password reset
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date },
 });
 
 // Hash password before saving

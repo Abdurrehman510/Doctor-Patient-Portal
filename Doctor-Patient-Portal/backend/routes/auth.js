@@ -3,8 +3,9 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
+const crypto = require('crypto'); // Import crypto for token generation
 const User = require('../models/User');
-const Patient = require('../models/Patient'); // Import the Patient model
+const Patient = require('../models/Patient');
 
 // Signup
 router.post('/signup', async (req, res) => {
@@ -136,5 +137,73 @@ router.post('/refresh', (req, res) => {
         });
     });
 });
+
+// ## FORGOT PASSWORD ##
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      // Send a generic success message to prevent email enumeration
+      return res.status(200).json({ message: 'If an account with that email exists, a password reset link has been sent.' });
+    }
+
+    // Generate a secure token
+    const token = crypto.randomBytes(20).toString('hex');
+
+    // Set token and expiration on the user document (e.g., expires in 1 hour)
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour in milliseconds
+
+    await user.save();
+
+    // In a real application, you would send an email here.
+    // For this project, we'll log the reset link to the console for simulation.
+    const resetLink = `http://localhost:5173/reset-password/${token}`;
+    console.log('--- PASSWORD RESET SIMULATION ---');
+    console.log(`Reset link for ${user.email}: ${resetLink}`);
+    console.log('---------------------------------');
+
+    res.status(200).json({ message: 'If an account with that email exists, a password reset link has been sent.' });
+
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// ## RESET PASSWORD ##
+router.post('/reset-password/:token', async (req, res) => {
+  try {
+    const { password } = req.body;
+    const { token } = req.params;
+
+    // Find the user by the token and check if the token is still valid
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }, // Check if token is not expired
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Password reset token is invalid or has expired.' });
+    }
+
+    // Set the new password
+    user.password = password;
+    // Clear the reset token fields
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+
+    await user.save();
+
+    res.status(200).json({ message: 'Password has been updated successfully.' });
+
+  } catch (err) {
+    console.error('Reset password error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 
 module.exports = router;
